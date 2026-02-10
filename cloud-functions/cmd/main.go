@@ -14,7 +14,12 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/", handler.HandleDigest)
+	h := handler.New(handler.Config{
+		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),
+		SlackBotToken:   os.Getenv("SLACK_BOT_TOKEN"),
+	})
+
+	http.HandleFunc("/", h.HandleDigest)
 
 	log.Printf("Starting server on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
