@@ -1,0 +1,32 @@
+services:
+  slack-app:
+    build:
+      context: ./slack-app
+      dockerfile: Dockerfile
+    volumes:
+      - ./slack-app:/app
+    env_file:
+      - .env
+    working_dir: /app
+
+  cloud-functions:
+    build:
+      context: ./cloud-functions
+      dockerfile: Dockerfile
+    volumes:
+      - ./cloud-functions:/app
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    working_dir: /app
+
+  terraform:
+    build:
+      context: ./terraform
+      dockerfile: Dockerfile
+    volumes:
+      - ./terraform:/app
+    env_file:
+      - .env
+    working_dir: /app
