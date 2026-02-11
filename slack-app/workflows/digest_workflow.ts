@@ -4,7 +4,7 @@ import { NotifyHandlerDef } from "../functions/notify_handler.ts";
 export const DigestWorkflow = DefineWorkflow({
   callback_id: "digest_workflow",
   title: "Digest Workflow",
-  description: "Process release notification and send summary",
+  description: "Receive release notification and schedule summarization",
   input_parameters: {
     properties: {
       channel_id: { type: Schema.slack.types.channel_id },

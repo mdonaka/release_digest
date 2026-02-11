@@ -1,20 +1,10 @@
 # Environment
 .env
+**/.env
 
 # Task files
 to_claude.md
 docs/plans
-
-# Go
-cloud-functions/main
-cloud-functions/tmp/
-
-# Terraform
-terraform/.terraform/
-terraform/.terraform.lock.hcl
-terraform/terraform.tfstate
-terraform/terraform.tfstate.backup
-terraform/*.tfvars
 
 # Slack
 slack-app/.slack/apps.json
