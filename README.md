@@ -29,9 +29,6 @@ Deno Slack App
 # Slack App の環境変数を Slack CLI で設定
 slack env add ANTHROPIC_API_KEY <your-key>
 slack env add SLACK_BOT_TOKEN <your-token>
-
-# トリガー作成時に使用（対象チャンネルID）
-export CHANNEL_ID=C0123456789
 ```
 
 ### 2. デプロイ
