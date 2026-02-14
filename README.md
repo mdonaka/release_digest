@@ -15,21 +15,6 @@ Deno Slack App
         └── Slack API (chat.postMessage)
 ```
 
-## ディレクトリ構成
-
-```
-├── slack-app/               # Deno Slack App
-│   ├── functions/           #   カスタムFunction
-│   │   ├── notify_handler.ts    # Scheduled Trigger作成
-│   │   └── summarize_handler.ts # Claude要約 + Slack返信
-│   ├── workflows/           #   ワークフロー定義
-│   │   ├── digest_workflow.ts   # メッセージ受信
-│   │   └── summarize_workflow.ts # 要約実行
-│   └── triggers/            #   イベントトリガー
-│       └── message_trigger.ts
-└── CLAUDE.md
-```
-
 ## セットアップ
 
 ### 前提条件
