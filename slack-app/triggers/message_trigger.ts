@@ -2,7 +2,7 @@ import { Trigger } from "deno-slack-api/types.ts";
 import { TriggerEventTypes, TriggerTypes } from "deno-slack-api/mod.ts";
 import { DigestWorkflow } from "../workflows/digest_workflow.ts";
 
-const GITHUB_BOT_ID = "B00000000"; // TODO: 実際のGitHub AppのBot IDに置き換え
+const CHANNEL_ID = "C00000000"; // TODO: 対象チャンネルIDに置き換え
 
 const trigger: Trigger<typeof DigestWorkflow.definition> = {
   type: TriggerTypes.Event,
@@ -11,13 +11,7 @@ const trigger: Trigger<typeof DigestWorkflow.definition> = {
   workflow: `#/workflows/${DigestWorkflow.definition.callback_id}`,
   event: {
     event_type: TriggerEventTypes.MessagePosted,
-    channel_ids: [], // TODO: 対象チャンネルIDを設定
-    filter: {
-      version: 1,
-      root: {
-        statement: `{{data.user_id}} == ${GITHUB_BOT_ID}`,
-      },
-    },
+    channel_ids: [CHANNEL_ID],
   },
   inputs: {
     channel_id: { value: "{{data.channel_id}}" },
