@@ -74,6 +74,11 @@ export default SlackFunction(
       if (!claudeResponse.ok) {
         const errorBody = await claudeResponse.text();
         console.error(`Claude API error: ${claudeResponse.status} ${errorBody}`);
+        await client.chat.postMessage({
+          channel: inputs.channel_id,
+          thread_ts: inputs.message_ts,
+          text: `要約に失敗しました (Claude API error: ${claudeResponse.status})`,
+        });
         return { outputs: { status: "claude_api_error" } };
       }
 
@@ -92,9 +97,30 @@ export default SlackFunction(
         return { outputs: { status: "slack_api_error" } };
       }
 
+      // Step 3: このメッセージ用のdigestトリガーを削除
+      try {
+        const triggerName = `digest-${inputs.message_ts}`;
+        const triggers = await client.workflows.triggers.list();
+        if (triggers.ok) {
+          for (const t of triggers.triggers) {
+            if (t.name === triggerName) {
+              await client.workflows.triggers.delete({ trigger_id: t.id });
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.error(`Trigger cleanup failed: ${e}`);
+      }
+
       return { outputs: { status: "success" } };
     } catch (error) {
       console.error(`Unexpected error: ${error}`);
+      await client.chat.postMessage({
+        channel: inputs.channel_id,
+        thread_ts: inputs.message_ts,
+        text: `要約に失敗しました: ${error}`,
+      });
       return { outputs: { status: "error" } };
     }
   },

@@ -1,6 +1,6 @@
 export const config = {
   claude: {
-    model: "claude-opus-4-6",
+    model: "claude-haiku-4-5-20251001",
     maxTokens: 1024,
   },
 };

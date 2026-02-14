@@ -12,6 +12,15 @@ const trigger: Trigger<typeof DigestWorkflow.definition> = {
   event: {
     event_type: TriggerEventTypes.MessagePosted,
     channel_ids: [CHANNEL_ID],
+    filter: {
+      version: 1,
+      root: {
+        operator: "NOT",
+        inputs: [{
+          statement: "{{data.message_link}} CONTAINS thread_ts",
+        }],
+      },
+    },
   },
   inputs: {
     channel_id: {value: "{{data.channel_id}}"},
