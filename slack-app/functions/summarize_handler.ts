@@ -11,8 +11,9 @@ export const SummarizeHandlerDef = DefineFunction({
       channel_id: { type: Schema.slack.types.channel_id },
       message_ts: { type: Schema.types.string },
       message_text: { type: Schema.types.string },
+      trigger_id: { type: Schema.types.string },
     },
-    required: ["channel_id", "message_ts", "message_text"],
+    required: ["channel_id", "message_ts", "message_text", "trigger_id"],
   },
   output_parameters: {
     properties: {
@@ -50,6 +51,7 @@ export default SlackFunction(
   SummarizeHandlerDef,
   async ({ inputs, env, client }) => {
     const anthropicApiKey = env["ANTHROPIC_API_KEY"];
+    let status = "success";
 
     try {
       // Step 1: Claude APIで要約
@@ -79,7 +81,8 @@ export default SlackFunction(
           thread_ts: inputs.message_ts,
           text: `要約に失敗しました (Claude API error: ${claudeResponse.status})`,
         });
-        return { outputs: { status: "claude_api_error" } };
+        status = "claude_api_error";
+        return { outputs: { status } };
       }
 
       const claudeResult = await claudeResponse.json();
@@ -94,26 +97,10 @@ export default SlackFunction(
 
       if (!slackResult.ok) {
         console.error(`Slack API error: ${slackResult.error}`);
-        return { outputs: { status: "slack_api_error" } };
+        status = "slack_api_error";
       }
 
-      // Step 3: このメッセージ用のdigestトリガーを削除
-      try {
-        const triggerName = `digest-${inputs.message_ts}`;
-        const triggers = await client.workflows.triggers.list();
-        if (triggers.ok) {
-          for (const t of triggers.triggers) {
-            if (t.name === triggerName) {
-              await client.workflows.triggers.delete({ trigger_id: t.id });
-              break;
-            }
-          }
-        }
-      } catch (e) {
-        console.error(`Trigger cleanup failed: ${e}`);
-      }
-
-      return { outputs: { status: "success" } };
+      return { outputs: { status } };
     } catch (error) {
       console.error(`Unexpected error: ${error}`);
       await client.chat.postMessage({
@@ -121,7 +108,14 @@ export default SlackFunction(
         thread_ts: inputs.message_ts,
         text: `要約に失敗しました: ${error}`,
       });
-      return { outputs: { status: "error" } };
+      status = "error";
+      return { outputs: { status } };
+    } finally {
+      try {
+        await client.workflows.triggers.delete({ trigger_id: inputs.trigger_id });
+      } catch (e) {
+        console.error(`Trigger cleanup failed: ${e}`);
+      }
     }
   },
 );
