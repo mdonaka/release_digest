@@ -2,7 +2,7 @@ import { Trigger } from "deno-slack-api/types.ts";
 import { TriggerEventTypes, TriggerTypes } from "deno-slack-api/mod.ts";
 import { DigestWorkflow } from "../workflows/digest_workflow.ts";
 
-const CHANNEL_ID = "C00000000"; // TODO: 対象チャンネルIDに置き換え
+const CHANNEL_ID = Deno.env.get("CHANNEL_ID") ?? "";
 
 const trigger: Trigger<typeof DigestWorkflow.definition> = {
   type: TriggerTypes.Event,
