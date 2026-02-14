@@ -10,8 +10,9 @@ export const SummarizeWorkflow = DefineWorkflow({
       channel_id: { type: Schema.slack.types.channel_id },
       message_ts: { type: Schema.types.string },
       message_text: { type: Schema.types.string },
+      trigger_id: { type: Schema.types.string },
     },
-    required: ["channel_id", "message_ts", "message_text"],
+    required: ["channel_id", "message_ts", "message_text", "trigger_id"],
   },
 });
 
@@ -19,6 +20,7 @@ SummarizeWorkflow.addStep(SummarizeHandlerDef, {
   channel_id: SummarizeWorkflow.inputs.channel_id,
   message_ts: SummarizeWorkflow.inputs.message_ts,
   message_text: SummarizeWorkflow.inputs.message_text,
+  trigger_id: SummarizeWorkflow.inputs.trigger_id,
 });
 
 export default SummarizeWorkflow;
