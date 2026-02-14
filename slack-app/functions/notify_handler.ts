@@ -39,7 +39,7 @@ export default SlackFunction(
           message_text: { value: inputs.message_text },
         },
         schedule: {
-          start_time: new Date(Date.now() + 60000).toISOString(),
+          start_time: new Date(Date.now() + 5000).toISOString(),
           timezone: "UTC",
           frequency: { type: "once" },
         },
