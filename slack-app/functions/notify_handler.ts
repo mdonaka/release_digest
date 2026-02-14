@@ -50,6 +50,29 @@ export default SlackFunction(
         return { outputs: { status: "trigger_creation_failed" } };
       }
 
+      const triggerId = triggerResponse.trigger?.id;
+
+      // trigger_idをinputsに追加
+      await client.workflows.triggers.update<
+        typeof SummarizeWorkflow.definition
+      >({
+        trigger_id: triggerId,
+        type: TriggerTypes.Scheduled,
+        name: `digest-${inputs.message_ts}`,
+        workflow: `#/workflows/${SummarizeWorkflow.definition.callback_id}`,
+        inputs: {
+          channel_id: { value: inputs.channel_id },
+          message_ts: { value: inputs.message_ts },
+          message_text: { value: inputs.message_text },
+          trigger_id: { value: triggerId },
+        },
+        schedule: {
+          start_time: new Date(Date.now() + 5000).toISOString(),
+          timezone: "UTC",
+          frequency: { type: "once" },
+        },
+      });
+
       return { outputs: { status: "scheduled" } };
     } catch (error) {
       console.error(`Unexpected error: ${error}`);
