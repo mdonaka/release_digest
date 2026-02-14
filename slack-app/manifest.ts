@@ -9,7 +9,6 @@ export default Manifest({
   workflows: [DigestWorkflow, SummarizeWorkflow],
   outgoingDomains: [
     "api.anthropic.com",
-    "slack.com",
   ],
   botScopes: [
     "channels:history",

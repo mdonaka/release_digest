@@ -1,5 +1,0 @@
-{
-  "hooks": {
-    "get-hooks": "deno run -q --allow-read --allow-net jsr:@anthropic/slack-hooks/mod.ts"
-  }
-}

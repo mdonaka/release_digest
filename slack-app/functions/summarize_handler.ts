@@ -48,9 +48,8 @@ Claude Code v1.0.5 がリリースされました。パフォーマンス改善�
 
 export default SlackFunction(
   SummarizeHandlerDef,
-  async ({ inputs, env }) => {
+  async ({ inputs, env, client }) => {
     const anthropicApiKey = env["ANTHROPIC_API_KEY"];
-    const slackBotToken = env["SLACK_BOT_TOKEN"];
 
     try {
       // Step 1: Claude APIで要約
@@ -82,23 +81,12 @@ export default SlackFunction(
       const summary = claudeResult.content[0].text;
 
       // Step 2: Slackスレッドに返信
-      const slackResponse = await fetch(
-        "https://slack.com/api/chat.postMessage",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${slackBotToken}`,
-          },
-          body: JSON.stringify({
-            channel: inputs.channel_id,
-            thread_ts: inputs.message_ts,
-            text: summary,
-          }),
-        },
-      );
+      const slackResult = await client.chat.postMessage({
+        channel: inputs.channel_id,
+        thread_ts: inputs.message_ts,
+        text: summary,
+      });
 
-      const slackResult = await slackResponse.json();
       if (!slackResult.ok) {
         console.error(`Slack API error: ${slackResult.error}`);
         return { outputs: { status: "slack_api_error" } };

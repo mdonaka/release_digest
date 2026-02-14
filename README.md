@@ -25,20 +25,28 @@ Deno Slack App
 
 ### 1. 環境変数の設定
 
+| 変数 | 取得方法 |
+|------|---------|
+| `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) → API Keys → Create Key |
+
 ```bash
-# Slack App の環境変数を Slack CLI で設定
 slack env add ANTHROPIC_API_KEY <your-key>
-slack env add SLACK_BOT_TOKEN <your-token>
 ```
 
-### 2. デプロイ
+### 2. チャンネルIDの設定
+
+`triggers/message_trigger.ts` の `CHANNEL_ID` を対象チャンネルのIDに書き換える。
+
+チャンネルIDの確認方法: Slackでチャンネル名を右クリック → 「チャンネル詳細を表示」→ 最下部にIDが表示される。
+
+### 3. デプロイ
 
 ```bash
 cd slack-app
 slack deploy
 ```
 
-### 3. トリガー作成
+### 4. トリガー作成
 
 ```bash
 slack trigger create --trigger-def triggers/message_trigger.ts
