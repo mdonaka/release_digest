@@ -37,6 +37,7 @@ export default SlackFunction(
           channel_id: { value: inputs.channel_id },
           message_ts: { value: inputs.message_ts },
           message_text: { value: inputs.message_text },
+          trigger_id: { value: "" },
         },
         schedule: {
           start_time: new Date(Date.now() + 5000).toISOString(),
