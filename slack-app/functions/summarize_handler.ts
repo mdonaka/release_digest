@@ -47,6 +47,61 @@ Claude Code v1.0.5 がリリースされました。パフォーマンス改善�
 - git操作時のタイムアウトエラーを修正
 - 日本語入力時の文字化けを修正`;
 
+/**
+ * Slack APIからメッセージ全文を取得する。
+ * GitHubボットはblocks/attachmentsのみでtextが空のことがあるため、
+ * conversations.historyで再取得してテキストを組み立てる。
+ */
+async function fetchMessageText(
+  client: { conversations: { history: (args: Record<string, unknown>) => Promise<Record<string, unknown>> } },
+  channelId: string,
+  messageTs: string,
+): Promise<string> {
+  const result = await client.conversations.history({
+    channel: channelId,
+    latest: messageTs,
+    inclusive: true,
+    limit: 1,
+  });
+
+  if (!result.ok || !Array.isArray(result.messages) || result.messages.length === 0) {
+    return "";
+  }
+
+  const msg = result.messages[0] as Record<string, unknown>;
+  const parts: string[] = [];
+
+  // 本文テキスト
+  if (typeof msg.text === "string" && msg.text.trim()) {
+    parts.push(msg.text);
+  }
+
+  // attachments（GitHub bot が使うフォーマット）
+  if (Array.isArray(msg.attachments)) {
+    for (const att of msg.attachments as Record<string, unknown>[]) {
+      if (typeof att.text === "string" && att.text.trim()) {
+        parts.push(att.text);
+      } else if (typeof att.fallback === "string" && att.fallback.trim()) {
+        parts.push(att.fallback);
+      }
+    }
+  }
+
+  // blocks 内の rich_text
+  if (Array.isArray(msg.blocks)) {
+    for (const block of msg.blocks as Record<string, unknown>[]) {
+      if (block.type === "section" && typeof (block as Record<string, { text?: string }>).text?.text === "string") {
+        const sectionText = ((block as Record<string, { text: string }>).text).text;
+        if (sectionText.trim() && !parts.includes(sectionText)) {
+          parts.push(sectionText);
+        }
+      }
+    }
+  }
+
+  return parts.join("\n\n");
+}
+
 export default SlackFunction(
   SummarizeHandlerDef,
   async ({ inputs, env, client }) => {
@@ -54,6 +109,27 @@ export default SlackFunction(
     let status = "success";
 
     try {
+      // Step 0: message_textが空ならSlack APIで再取得
+      let messageText = inputs.message_text?.trim() || "";
+      if (!messageText) {
+        console.log("message_text is empty, fetching from Slack API...");
+        messageText = await fetchMessageText(
+          client as unknown as Parameters<typeof fetchMessageText>[0],
+          inputs.channel_id,
+          inputs.message_ts,
+        );
+        if (!messageText) {
+          console.error("Failed to fetch message text from Slack API");
+          await client.chat.postMessage({
+            channel: inputs.channel_id,
+            thread_ts: inputs.message_ts,
+            text: "要約に失敗しました: メッセージ本文を取得できませんでした",
+          });
+          return { outputs: { status: "empty_message" } };
+        }
+        console.log(`Fetched message text (${messageText.length} chars)`);
+      }
+
       // Step 1: Claude APIで要約
       const claudeResponse = await fetch(
         "https://api.anthropic.com/v1/messages",
@@ -68,7 +144,7 @@ export default SlackFunction(
             model: config.claude.model,
             max_tokens: config.claude.maxTokens,
             system: SYSTEM_PROMPT,
-            messages: [{ role: "user", content: inputs.message_text }],
+            messages: [{ role: "user", content: messageText }],
           }),
         },
       );
